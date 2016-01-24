@@ -1,0 +1,12 @@
+{
+  "name": "jianhelper",
+  "version": "0.1.0",
+  "description": "A downloader for articles in jianshu.com.",
+  "main": "jianhelper.js",
+  "author": "wizardforcel",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^0.19.0",
+    "sync-request": "^2.1.0"
+  }
+}
