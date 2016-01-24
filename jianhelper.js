@@ -54,8 +54,8 @@ for(var i = startPage; i <= endPage; i++)
 	for(var j in li)
 	{
 		var artUrl = li[j];
-		console.log('article: ' + artUrl);
 		var fname = /\/p\/(\w{12})/.exec(artUrl)[1];
+		console.log('article: ' + fname);
 		var html = request('GET', artUrl).getBody().toString();
 		var co = getContent(html);
 		fs.writeFileSync('./out/OEBPS/Text/' + fname + '.html', co, {encoding: 'utf-8'});
@@ -140,6 +140,7 @@ function getList(html)  {
 
 function getContent(html) {
 	var $ = cheerio.load(html);
+	dealWithImg($);
 	
 	var header = '<?xml version="1.0" encoding="utf-8"?>\r\n' +
 		'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"\r\n' +
@@ -169,4 +170,19 @@ function initPath()
 	fs.writeFileSync('./out/META-INF/container.xml', fs.readFileSync('./assets/container.xml'));
 	fs.writeFileSync('./out/mimetype', fs.readFileSync('./assets/mimetype'));
 	fs.writeFileSync('./out/OEBPS/Styles/Style.css', fs.readFileSync('./assets/Style.css'));
+}
+
+function dealWithImg($)
+{
+	var imgs = $(selectors.content + ' img');
+	for(var i = 0; i < imgs.length; i++)
+	{
+		var img = imgs.eq(i);
+		var url = img.attr('src');
+		var co = request('GET', url).getBody();
+		var fname = /[\w\-]+\.(?:jpg|png|gif)/.exec(url)[0];
+		console.log('img: ' + fname);
+		fs.writeFileSync('./out/OEBPS/Images/' + fname, co);
+		img.attr('src', '../Images/' + fname);
+	}
 }

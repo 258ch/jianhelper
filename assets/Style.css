@@ -282,3 +282,10 @@ table tr:nth-child(2n) {
 img {
   max-width: 100%
 }
+
+/* FOR JIANSHU
+=============================================================================*/
+
+.image-package {
+  text-align: center
+}
