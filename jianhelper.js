@@ -2,6 +2,7 @@ var cheerio = require('cheerio');
 var request = require('sync-request');
 var fs = require('fs');
 var process = require('process');
+var ejs = require('ejs');
 
 var types = {
 	unknown: 0,
@@ -54,13 +55,26 @@ for(var i = startPage; i <= endPage; i++)
 	for(var j in li)
 	{
 		var artUrl = li[j];
-		var fname = /\/p\/(\w{12})/.exec(artUrl)[1];
-		console.log('article: ' + fname);
+		var fname = /\/p\/(\w{12})/.exec(artUrl)[1] + '.html';
 		var html = request('GET', artUrl).getBody().toString();
 		var co = getContent(html);
-		fs.writeFileSync('./out/OEBPS/Text/' + fname + '.html', co, {encoding: 'utf-8'});
+		fs.writeFileSync('./out/OEBPS/Text/' + fname, co, {encoding: 'utf-8'});
+		var title = /<h1>(.+?)<\/h1>/.exec(co)[1];
+		toc.push({file: fname, title: title});
+		console.log('article: ' + fname + ', title: ' + title);
 	}
 }
+
+var uuidGenerator = require('./uuid.js');
+var uuid = uuidGenerator.uuid();
+
+console.log('Generate content.opf...')
+var contentOpf = getContentOpf(toc, uuid);
+fs.writeFileSync('./out/OEBPS/content.opf', contentOpf, {encoding: 'utf-8'})
+
+console.log('Generate toc.ncx...')
+var tocNcx = getTocNcx(toc, uuid);
+fs.writeFileSync('./out/OEBPS/toc.ncx', tocNcx, {encoding: 'utf-8'})
 
 console.log('Done..');
 
@@ -142,11 +156,7 @@ function getContent(html) {
 	var $ = cheerio.load(html);
 	dealWithImg($);
 	
-	var header = '<?xml version="1.0" encoding="utf-8"?>\r\n' +
-		'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"\r\n' +
-		'"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">\r\n\r\n' +
-		'<html xmlns="http://www.w3.org/1999/xhtml">\r\n' +
-		'<head>\r\n<title></title>\r\n' + 
+	var header = '<html>\r\n<head>\r\n<title></title>\r\n' +
 		'<link href="../Styles/Style.css" type="text/css" rel="stylesheet"/>' +
 		'</head>\r\n<body>\r\n';
 	
@@ -185,4 +195,25 @@ function dealWithImg($)
 		fs.writeFileSync('./out/OEBPS/Images/' + fname, co);
 		img.attr('src', '../Images/' + fname);
 	}
+}
+
+function getContentOpf(toc, uuid)
+{
+	var date = new Date();
+	var dateStr 
+		= date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+	
+	return ejs.render(fs.readFileSync('content.ejs', 'utf-8'), {
+		date: dateStr,
+		toc: toc,
+		uuid: uuid
+	});
+}
+
+function getTocNcx(toc, uuid)
+{
+	return ejs.render(fs.readFileSync('toc.ejs', 'utf-8'), {
+		toc: toc,
+		uuid: uuid
+	});
 }
