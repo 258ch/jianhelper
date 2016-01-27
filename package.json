@@ -1,6 +1,6 @@
 {
   "name": "jianhelper",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A downloader for articles in jianshu.com.",
   "main": "jianhelper.js",
   "author": "wizardforcel",

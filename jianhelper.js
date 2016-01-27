@@ -215,7 +215,7 @@ function getContentOpf(toc, uuid)
     var dateStr 
         = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
     
-    return ejs.render(fs.readFileSync('content.ejs', 'utf-8'), {
+    return ejs.render(fs.readFileSync('assets/content.ejs', 'utf-8'), {
         date: dateStr,
         toc: toc,
         uuid: uuid
@@ -224,7 +224,7 @@ function getContentOpf(toc, uuid)
 
 function getTocNcx(toc, uuid)
 {
-    return ejs.render(fs.readFileSync('toc.ejs', 'utf-8'), {
+    return ejs.render(fs.readFileSync('assets/toc.ejs', 'utf-8'), {
         toc: toc,
         uuid: uuid
     });
