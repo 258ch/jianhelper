@@ -3,6 +3,7 @@ var request = require('sync-request');
 var fs = require('fs');
 var process = require('process');
 var ejs = require('ejs');
+var jszip = require('jszip');
 
 var types = {
 	unknown: 0,
@@ -75,6 +76,9 @@ fs.writeFileSync('./out/OEBPS/content.opf', contentOpf, {encoding: 'utf-8'})
 console.log('Generate toc.ncx...')
 var tocNcx = getTocNcx(toc, uuid);
 fs.writeFileSync('./out/OEBPS/toc.ncx', tocNcx, {encoding: 'utf-8'})
+
+console.log('Gnerate epub...');
+generate();
 
 console.log('Done..');
 
@@ -175,11 +179,11 @@ function initPath()
 	try {fs.mkdirSync('./out/OEBPS');} catch(ex) {}
 	try {fs.mkdirSync('./out/OEBPS/Text');} catch(ex) {}
 	try {fs.mkdirSync('./out/OEBPS/Images');} catch(ex) {}
-	try {fs.mkdirSync('./out/OEBPS/Styles');} catch(ex) {}
-	try {fs.mkdirSync('./out/META-INF');} catch(ex) {}
-	fs.writeFileSync('./out/META-INF/container.xml', fs.readFileSync('./assets/container.xml'));
-	fs.writeFileSync('./out/mimetype', fs.readFileSync('./assets/mimetype'));
-	fs.writeFileSync('./out/OEBPS/Styles/Style.css', fs.readFileSync('./assets/Style.css'));
+	//try {fs.mkdirSync('./out/OEBPS/Styles');} catch(ex) {}
+	//try {fs.mkdirSync('./out/META-INF');} catch(ex) {}
+	//fs.writeFileSync('./out/META-INF/container.xml', fs.readFileSync('./assets/container.xml'));
+	//fs.writeFileSync('./out/mimetype', fs.readFileSync('./assets/mimetype'));
+	//fs.writeFileSync('./out/OEBPS/Styles/Style.css', fs.readFileSync('./assets/Style.css'));
 }
 
 function dealWithImg($)
@@ -216,4 +220,30 @@ function getTocNcx(toc, uuid)
 		toc: toc,
 		uuid: uuid
 	});
+}
+
+function generate()
+{
+	var zip = new jszip();
+	zip.file('mimetype', fs.readFileSync('./assets/mimetype'));
+	zip.file('META-INF/container.xml', fs.readFileSync('./assets/container.xml'));
+	zip.file('OEBPS/Styles/Style.css', fs.readFileSync('./assets/Style.css'));
+	zip.file('OEBPS/content.opf', fs.readFileSync('./out/OEBPS/content.opf'));
+	zip.file('OEBPS/toc.ncx', fs.readFileSync('./out/OEBPS/toc.ncx'));
+	
+	var articles = fs.readdirSync('./out/OEBPS/Text');
+	for(var i = 0; i < articles.length; i++)
+	{
+		var fname = articles[i];
+		zip.file('OEBPS/Text/' + fname, fs.readFileSync('./out/OEBPS/Text/' + fname));
+	}
+	
+	var images = fs.readdirSync('./out/OEBPS/Images');
+	for(var i = 0; i < images.length; i++)
+	{
+		var fname = images[i];
+		zip.file('OEBPS/Images/' + fname, fs.readFileSync('./out/OEBPS/Images/' + fname));
+	}
+	
+	fs.writeFileSync('out.epub', zip.generate({type: 'nodebuffer', 'compression':'DEFLATE'}));
 }
