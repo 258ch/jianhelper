@@ -50,7 +50,10 @@ for(var i = startPage; i <= endPage; i++)
 {
     console.log('page: ' + i.toString())
     var pageUrl = url.replace(/\{page\}/, i.toString());
-    var html = request('GET', pageUrl).getBody().toString();
+    var html;
+    try {
+        html = request('GET', pageUrl).getBody().toString();
+    } catch(ex) { break; }
     var li = getList(html);
     if(li.length == 0)
         break;
@@ -65,7 +68,7 @@ for(var i = startPage; i <= endPage; i++)
             var title = /<h1>(.+?)<\/h1>/.exec(co)[1];
             toc.push({file: fname, title: title});
             console.log('article: ' + fname + ', title: ' + title);
-        } catch(ex) { console.log(ex); }
+        } catch(ex) { console.log(ex.toString()); }
     }
 }
 
@@ -99,7 +102,7 @@ function showUsage() {
 function checkUrl(url)
 {
     var regexes = {
-        user: /^https?:\/\/www\.jianshu\.com\/users\/(\w{12})\/?$/,
+        user: /^https?:\/\/www\.jianshu\.com\/users\/(\w{6,12})\/?$/,
         notebook: /^https?:\/\/www\.jianshu\.com\/notebooks\/(\d+)\/?$/,
         collection: /^https?:\/\/www\.jianshu\.com\/collection\/(\w{6,12})\/?$/
     };
@@ -205,7 +208,7 @@ function dealWithImg($)
             console.log('img: ' + fname);
             fs.writeFileSync('./out/OEBPS/Images/' + fname, co);
             img.attr('src', '../Images/' + fname);
-        } catch(ex) { console.log(ex); }
+        } catch(ex) { console.log(ex.toString()); }
     }
 }
 
